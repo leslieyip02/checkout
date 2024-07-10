@@ -1,0 +1,8 @@
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 480
+
+#define QR_PIXEL_SIZE 7
+#define QR_VERSION 6
+#define QR_CAPACITY 136
+
+#define PHONE_NUMBER "+6597223615"
