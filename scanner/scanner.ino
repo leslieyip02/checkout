@@ -18,6 +18,9 @@ void setup() {
     char* code = generateCode(3.2161);
     qrcode_initText(&qrcode, qrcodeData, QR_VERSION, ECC_LOW, code);
     displayQRCode(&qrcode, QR_VERSION);
+    displayTimerBar();
 }
 
-void loop() {}
+void loop() {
+    updateTimerBar();
+}

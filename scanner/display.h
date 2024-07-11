@@ -5,9 +5,14 @@
 #include "MCUFRIEND_kbv.h"
 #include "qrcode.h"
 
+#define TIMER_INACTIVE -1
+
 extern MCUFRIEND_kbv tft;
 
 extern void setupDisplay();
+extern void clearScreen();
 extern void displayQRCode(QRCode* qrcode, int version);
+extern void displayTimerBar();
+extern void updateTimerBar();
 
 #endif
