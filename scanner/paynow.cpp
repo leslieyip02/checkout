@@ -61,7 +61,7 @@ char* generateChecksum(char* payload) {
 
     // split 16-bit crc into 4-bit chunks and convert to hexadecimal string
     char* checksum = (char*) malloc(5 * sizeof(char));
-    for (int i = 0; i < 4; i++){
+    for (int i = 0; i < 4; i++) {
         uint16_t mask = 0xF000 >> (i * 4);
         uint16_t nibble = (mask & crc) >> ((3 - i) * 4);
         *(checksum + i) = nibble + (nibble >= 10 ? 55 : '0');
