@@ -8,13 +8,12 @@
 #include "paynow.h"
 
 char* generateCode(double amount) {
-
     // each segment of the code is structure as follows
     // <ID><length><value>
     char* payload = (char*) malloc(QR_CAPACITY * sizeof(char));
 
-    char* proxy = (char*) malloc(16 * sizeof(char));
-    sprintf(proxy, "0211%s", PHONE_NUMBER);
+    char* proxyValue = (char*) malloc(16 * sizeof(char));
+    sprintf(proxyValue, "0211%s", PAYNOW_PHONE_NUMBER);
 
     // sprintf does not work with floats on arduino
     char* roundedAmount = (char*) malloc(16 * sizeof(char));
@@ -22,13 +21,16 @@ char* generateCode(double amount) {
     int decimal = (int) (amount * 100) % 100;
     sprintf(roundedAmount, "5406%03d.%02d", integral, decimal);
 
+    char* message = (char*) malloc(16 * sizeof(char));
+    sprintf(message, "01%02d%s", strlen(PAYNOW_MESSAGE), PAYNOW_MESSAGE);
+
     strcpy(payload, "000201");          // format
     strcat(payload, "010211");          // method (11 for static, 12 for dynamic)
 
     strcat(payload, "2638");            // merchant account information header (38 is the length of the body)
     strcat(payload, "0009SG.PAYNOW");   // reverse domain name
     strcat(payload, "01010");           // proxy type (0 for mobile number, 2 for UEN)
-    strcat(payload, proxy);             // proxy value (+65XXXXXXXX)
+    strcat(payload, proxyValue);        // proxy value (+65XXXXXXXX)
     strcat(payload, "03011");           // editability (0 for no, 1 for yes)
 
     strcat(payload, "52040000");        // merchant category
@@ -38,7 +40,7 @@ char* generateCode(double amount) {
     strcat(payload, "5902NA");          // merchant name
     strcat(payload, "6009Singapore");   // city
     strcat(payload, "6211");            // message header (11 is the length of the body)
-    strcat(payload, "0107RC4 SOS");     // message
+    strcat(payload, message);           // message
     strcat(payload, "6304");            // checksum indicator
 
     char* checksum = generateChecksum(payload);
@@ -47,8 +49,10 @@ char* generateCode(double amount) {
 }
 
 char* generateChecksum(char* payload) {
+    // CRC16-CCITT checksum calculation
     uint16_t crc = 0xFFFF;
-    while (*payload != '\0') {
+    while (*payload != '\0')
+    {
         uint16_t mask = crc >> 8;
         uint8_t x = mask ^ *payload;
         x ^= (x >> 4);
@@ -56,6 +60,7 @@ char* generateChecksum(char* payload) {
         payload++;
     }
 
+    // split 16-bit crc into 4-bit chunks and convert to hexadecimal string
     char* checksum = (char*) malloc(5 * sizeof(char));
     for (int i = 0; i < 4; i++) {
         uint16_t mask = 0xF000 >> (i * 4);
