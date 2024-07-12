@@ -14,5 +14,7 @@ extern void clearScreen();
 extern void displayQRCode(QRCode* qrcode, int version);
 extern void displayTimerBar();
 extern void updateTimerBar();
+extern void displayHorizontallyCenteredText(char* text, int y);
+extern void displayAmount(double amount);
 
 #endif

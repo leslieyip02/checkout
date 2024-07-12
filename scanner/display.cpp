@@ -27,7 +27,7 @@ void setupDisplay() {
 }
 
 void clearScreen() {
-    tft.fillScreen(WHITE);
+    tft.fillScreen(TFT_WHITE);
 }
 
 void displayQRCode(QRCode* qrcode, int version) {
@@ -42,7 +42,7 @@ void displayQRCode(QRCode* qrcode, int version) {
                     y + i * QR_PIXEL_SIZE,
                     QR_PIXEL_SIZE,
                     QR_PIXEL_SIZE,
-                    BLACK
+                    TFT_BLACK
                 );
             }
         }
@@ -58,7 +58,7 @@ void displayTimerBar() {
             y + i,
             QRCodeWidth - (i * 2),
             TIMER_BAR_HEIGHT - (i * 2),
-            BLACK
+            TFT_BLACK
         );
     }
 
@@ -86,7 +86,29 @@ void updateTimerBar() {
         timerInnerY,
         newTimerProgressX - timerProgressX,
         timerBarInnerHeight,
-        BLUE
+        TFT_BLUE
     );
     timerProgressX = newTimerProgressX;
+}
+
+void displayHorizontallyCenteredText(char* text, int y) {
+    int x1, y1, w, h;
+
+    tft.setTextSize(3);
+    tft.getTextBounds(text, 0, y, &x1, &y1, &w, &h);
+    tft.setCursor((SCREEN_WIDTH - w) / 2, y);
+    tft.setTextColor(TFT_BLACK);
+    tft.print(text);
+}
+
+void displayAmount(double amount) {
+    char* roundedAmount = (char*) malloc(16 * sizeof(char));
+    int integral = (int) amount;
+    int decimal = (int) (amount * 100) % 100;
+    sprintf(roundedAmount, "Total: $%d.%02d", integral, decimal);
+
+    int y = QRCodeWidth + TIMER_BAR_HEIGHT + padding * 3;
+    displayHorizontallyCenteredText(roundedAmount, y);
+
+    free(roundedAmount);
 }
