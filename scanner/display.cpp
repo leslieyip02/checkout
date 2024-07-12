@@ -61,6 +61,10 @@ void updateScreen() {
     updateIdleText();
 }
 
+boolean isQRCodeScreen() {
+    return timerValue != TIMER_INACTIVE;
+}
+
 void displayHorizontallyCenteredText(char* text, int y) {
     int x1, y1, w, h;
 
@@ -87,7 +91,7 @@ void displayPaymentScreen(double amount) {
 }
 
 void displayQRCode(QRCode* qrcode, int version) {
-    // qr code
+    // QR code
     int x = padding;
     int y = padding;
     for (int i = 0; i < qrcode->size; i++) {
@@ -119,6 +123,7 @@ void displayTimerBar() {
     }
 
     timerValue = 0;
+    timerProgressX = timerInnerX;
 }
 
 void updateTimerBar() {
@@ -144,6 +149,7 @@ void updateTimerBar() {
         timerBarInnerHeight,
         TFT_BLUE
     );
+
     timerProgressX = newTimerProgressX;
 }
 

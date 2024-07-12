@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#define TOGGLE_BUTTON_PIN 13
+
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 480
 
