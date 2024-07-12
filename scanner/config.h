@@ -16,4 +16,7 @@
 #define TIMER_BAR_HEIGHT 28
 #define TIMER_BAR_THICKNESS 4
 
+#define IDLE_TEXT "RC4 SOS"
+#define IDLE_TEXT_VELOCITY 2
+
 #endif
