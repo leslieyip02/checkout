@@ -1,29 +1,18 @@
 #include "config.h"
 #include "display.h"
-
-double amount = 12.34;
+#include "record.h"
 
 void setup() {
-    // debugging
-    // Serial.begin(115200);
-
-    // pinMode(TOGGLE_BUTTON_PIN, INPUT);
+    // debugging via Serial is not available
+    // since it is used to communicate with the scanner
 
     setupDisplay();
+    setupScanListener();
     displayIdleScreen();
-    // displayPaymentScreen(amount);
 }
 
 void loop() {
-    // int buttonState = digitalRead(TOGGLE_BUTTON_PIN);
-    // if (buttonState == HIGH) {
-    //     if (isQRCodeScreen()) {
-    //         displayIdleScreen();
-    //     } else {
-    //         displayPaymentScreen(amount);
-    //     }
-    // }
-
+    listenForScans();
     updateScreen();
     delay(10);
 }

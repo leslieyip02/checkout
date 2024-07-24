@@ -14,7 +14,6 @@ extern void setupDisplay();
 extern void clearScreen(int color);
 extern void displayHorizontallyCenteredText(char* text, int y);
 extern void updateScreen();
-extern boolean isQRCodeScreen();
 
 // QR code screen
 extern void displayPaymentScreen(double amount);

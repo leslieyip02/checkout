@@ -1,10 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <usbhid.h>
-#include <hiduniversal.h>
-#include <hidboot.h>
+#include <SoftwareSerial.h>
 #include <SPI.h>
+#include <hidboot.h>
+#include <hiduniversal.h>
+#include <usbhid.h>
 
 #include "parser.h"
 
@@ -12,8 +13,23 @@ USB usb;
 HIDUniversal hid(&usb);
 Parser scanner;
 
+SoftwareSerial output(RX, TX);
+
+void setupScanner() {
+    usb.Init();
+    hid.SetReportParser(0, &scanner);
+    output.begin(9600);
+}
+
+void sendMessage(char* message) {
+    output.write(MESSAGE_START);
+    output.print(message);
+    output.write(MESSAGE_END);
+    // Serial.println(message);
+    // Serial.println("Sent");
+}
+
 Parser::Parser() {
-    itemsOrdered = (int*) malloc(1 * sizeof(int));
     ClearBuffer();
 }
 
@@ -59,14 +75,7 @@ void Parser::OnKeyScanned(bool upper, uint8_t key) {
 
 void Parser::OnScanFinished() {
     *bufferPointer = '\0';
-
-    char* dummyId = "0100000010174";
-    int dummyIndex = 0;
-    if (strcmp(bufferPointer, dummyId) == 0) {
-        itemsOrdered[dummyIndex]++;
-    };
-
-    Serial.println(barcodeBuffer);
+    sendMessage(barcodeBuffer);
     ClearBuffer();
 }
 
@@ -74,19 +83,4 @@ void Parser::ClearBuffer() {
     free(barcodeBuffer);
     barcodeBuffer = (char*) malloc((BARCODE_LENGTH + 1) * sizeof(char));
     bufferPointer = barcodeBuffer;
-}
-
-void setupScanner() {
-    usb.Init();
-    hid.SetReportParser(0, &scanner);
-}
-
-double getAmount() {
-    double amount = 0.0;
-    for (int i = 0; i < 1; i++) {
-        double itemCost = 1.23;
-        double quantity = scanner.itemsOrdered[i];
-        amount += itemCost * quantity;
-    }
-    return amount;
 }

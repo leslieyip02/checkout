@@ -1,8 +1,8 @@
 #include <stdint.h>
 
-#include "Adafruit_GFX.h"
-#include "MCUFRIEND_kbv.h"
-#include "qrcode.h"
+#include <Adafruit_GFX.h>
+#include <MCUFRIEND_kbv.h>
+#include <qrcode.h>
 
 #include "config.h"
 #include "display.h"
@@ -26,10 +26,7 @@ int idleTextY = IDLE_TEXT_INACTIVE;
 int idleTextDx = IDLE_TEXT_INACTIVE;
 int idleTextDy = IDLE_TEXT_INACTIVE;
 int idleTextWidth, idleTextHeight;
-int idleTextColors[] = {
-    TFT_WHITE, TFT_RED, TFT_BLUE, TFT_GREEN,
-    TFT_YELLOW, TFT_ORANGE, TFT_PURPLE, TFT_PINK
-};
+int idleTextColors[] = { TFT_WHITE, TFT_RED, TFT_BLUE, TFT_GREEN, TFT_YELLOW, TFT_ORANGE, TFT_PURPLE, TFT_PINK };
 int idleTextColorsIndex = 0;
 int idleTextColorsLength = 8;
 
@@ -61,10 +58,6 @@ void updateScreen() {
     updateIdleText();
 }
 
-boolean isQRCodeScreen() {
-    return timerValue != TIMER_INACTIVE;
-}
-
 void displayHorizontallyCenteredText(char* text, int y) {
     int x1, y1, w, h;
 
@@ -91,7 +84,6 @@ void displayPaymentScreen(double amount) {
 }
 
 void displayQRCode(QRCode* qrcode, int version) {
-    // QR code
     int x = padding;
     int y = padding;
     for (int i = 0; i < qrcode->size; i++) {

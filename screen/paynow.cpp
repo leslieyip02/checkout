@@ -24,7 +24,7 @@ char* generateCode(double amount) {
     char* message = (char*) malloc(16 * sizeof(char));
     sprintf(message, "01%02d%s", strlen(PAYNOW_MESSAGE), PAYNOW_MESSAGE);
 
-    strcat(payload, BLOCK_1);       // predefined to save memory
+    strcpy(payload, BLOCK_1);       // predefined to save memory
     strcat(payload, proxyValue);    // proxy value (+65XXXXXXXX)
     strcat(payload, BLOCK_2);       // predefined to save memory
     strcat(payload, roundedAmount); // amount (2dp)
