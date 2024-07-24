@@ -1,6 +1,6 @@
 # Scanner
 
-This module is responsible for scanning barcodes.
+This module is responsible for scanning barcodes. It is also hooked up to buttons which can be used to toggle between screens.
 
 ### Hardware
 

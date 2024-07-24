@@ -2,6 +2,10 @@
 
 This module is responsible for displaying the PayNow QR code.
 
+### TODO
+
+- Implement SD card storage with the 3.5" TFT LCD Screen
+
 ### Hardware
 
 - Arduino UNO
