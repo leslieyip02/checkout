@@ -16,3 +16,5 @@ This module is responsible for displaying the PayNow QR code.
 - [Adafruit GFX](https://github.com/adafruit/Adafruit-GFX-Library)
 - [MCUFRIEND_kbv](https://github.com/prenticedavid/MCUFRIEND_kbv)
 - [QRCode](https://github.com/ricmoo/qrcode/)
+
+Go into `MCUFRIEND_kbv.cpp` to comment out unnecessary `#define`s and `if` statements.

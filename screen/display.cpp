@@ -1,12 +1,12 @@
-#include <stdint.h>
-
 #include <Adafruit_GFX.h>
+#include <avr/pgmspace.h>
 #include <MCUFRIEND_kbv.h>
 #include <qrcode.h>
 
 #include "config.h"
 #include "display.h"
 #include "paynow.h"
+#include "record.h"
 
 constexpr int QRCodeWidth = (4 * QR_VERSION + 17) * QR_PIXEL_SIZE;
 constexpr int padding = (SCREEN_WIDTH - QRCodeWidth) / 2;
@@ -25,10 +25,12 @@ int idleTextX = IDLE_TEXT_INACTIVE;
 int idleTextY = IDLE_TEXT_INACTIVE;
 int idleTextDx = IDLE_TEXT_INACTIVE;
 int idleTextDy = IDLE_TEXT_INACTIVE;
-int idleTextWidth, idleTextHeight;
-int idleTextColors[] = { TFT_WHITE, TFT_RED, TFT_BLUE, TFT_GREEN, TFT_YELLOW, TFT_ORANGE, TFT_PURPLE, TFT_PINK };
+
+const PROGMEM int idleTextColors[] = { TFT_RED, TFT_BLUE, TFT_GREEN, TFT_YELLOW };
 int idleTextColorsIndex = 0;
-int idleTextColorsLength = 8;
+constexpr int idleTextColorsLength = 4;
+
+int idleTextWidth, idleTextHeight;
 
 void setupDisplay() {
     uint16_t ID = tft.readID();
@@ -36,7 +38,7 @@ void setupDisplay() {
 
     // dummy variables
     int x1, y1;
-    tft.setTextSize(3);
+    tft.setTextSize(5);
     tft.getTextBounds(IDLE_TEXT, 0, 0, &x1, &y1, &idleTextWidth, &idleTextHeight);
 
     clearScreen(TFT_BLACK);
@@ -69,31 +71,33 @@ void displayHorizontallyCenteredText(char* text, int y) {
 }
 
 void displayPaymentScreen(double amount) {
+    if (timerValue != TIMER_INACTIVE) {
+        return;
+    }
+
     clearScreen(TFT_WHITE);
 
-    QRCode qrcode;
-    uint8_t qrcodeData[qrcode_getBufferSize(QR_VERSION)];
-
     char* code = generateCode(amount);
-    qrcode_initText(&qrcode, qrcodeData, QR_VERSION, ECC_LOW, code);
-    displayQRCode(&qrcode, QR_VERSION);
+    displayQRCode(code);
+    free(code);
+
     displayTimerBar();
     displayAmount(amount);
-
-    free(code);
 }
 
-void displayQRCode(QRCode* qrcode, int version) {
+void displayQRCode(char* code) {
+    QRCode qrcode;
+    uint8_t qrcodeData[qrcode_getBufferSize(QR_VERSION)];
+    qrcode_initText(&qrcode, qrcodeData, QR_VERSION, ECC_LOW, code);
+
     int x = padding;
     int y = padding;
-    for (int i = 0; i < qrcode->size; i++) {
-        for (int j = 0; j < qrcode->size; j++) {
-            if (qrcode_getModule(qrcode, j, i)) {
+    for (int i = 0; i < qrcode.size; i++) {
+        for (int j = 0; j < qrcode.size; j++) {
+            if (qrcode_getModule(&qrcode, j, i)) {
                 tft.fillRect(
-                    x + j * QR_PIXEL_SIZE,
-                    y + i * QR_PIXEL_SIZE,
-                    QR_PIXEL_SIZE,
-                    QR_PIXEL_SIZE,
+                    x + j * QR_PIXEL_SIZE, y + i * QR_PIXEL_SIZE,
+                    QR_PIXEL_SIZE, QR_PIXEL_SIZE,
                     TFT_BLACK
                 );
             }
@@ -106,10 +110,8 @@ void displayTimerBar() {
     int y = QRCodeWidth + padding * 2;
     for (int i = 0; i < TIMER_BAR_THICKNESS; i++) {
         tft.drawRect(
-            x + i,
-            y + i,
-            QRCodeWidth - (i * 2),
-            TIMER_BAR_HEIGHT - (i * 2),
+            x + i, y + i,
+            QRCodeWidth - (i * 2), TIMER_BAR_HEIGHT - (i * 2),
             TFT_BLACK
         );
     }
@@ -128,17 +130,15 @@ void updateTimerBar() {
         timerValue = TIMER_INACTIVE;
         timerProgressX = timerInnerX;
 
-        displayIdleScreen();
+        reboot();
         return;
     }
 
     double elapsed = (double) timerValue / TIMER_DURATION;
     int newTimerProgressX = timerInnerX + timerBarInnerWidth * elapsed;
     tft.fillRect(
-        timerProgressX,
-        timerInnerY,
-        newTimerProgressX - timerProgressX,
-        timerBarInnerHeight,
+        timerProgressX, timerInnerY,
+        newTimerProgressX - timerProgressX, timerBarInnerHeight,
         TFT_BLUE
     );
 
@@ -146,15 +146,15 @@ void updateTimerBar() {
 }
 
 void displayAmount(double amount) {
-    char* roundedAmount = (char*) malloc(16 * sizeof(char));
+    // char* roundedAmount = (char*) malloc(10 * sizeof(char));
+    char roundedAmount[8];
     int integral = (int) amount;
     int decimal = (int) (amount * 100) % 100;
-    sprintf(roundedAmount, "Total: $%d.%02d", integral, decimal);
+    // sprintf_P(roundedAmount, PSTR("$%d.%02d"), integral, decimal);
+    sprintf(roundedAmount, "$%d.%02d", integral, decimal);
 
     int y = QRCodeWidth + TIMER_BAR_HEIGHT + padding * 3;
     displayHorizontallyCenteredText(roundedAmount, y);
-
-    free(roundedAmount);
 }
 
 void displayIdleScreen() {
@@ -164,6 +164,8 @@ void displayIdleScreen() {
     idleTextY = 0;
     idleTextDx = IDLE_TEXT_VELOCITY;
     idleTextDy = IDLE_TEXT_VELOCITY;
+
+    // clearCart();
 }
 
 void toggleIdleTextColor() {
@@ -201,8 +203,8 @@ void updateIdleText() {
         toggleIdleTextColor();
     }
 
-    tft.setTextSize(3);
-    tft.setTextColor(idleTextColors[idleTextColorsIndex]);
+    tft.setTextSize(5);
+    tft.setTextColor(pgm_read_word_near(idleTextColors + idleTextColorsIndex));
     tft.setCursor(idleTextX, idleTextY);
     tft.print(IDLE_TEXT);
 }

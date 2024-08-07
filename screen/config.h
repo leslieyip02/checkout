@@ -1,24 +1,20 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define TOGGLE_BUTTON_PIN 13
-
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 480
 
 #define QR_PIXEL_SIZE 7
 #define QR_VERSION 6
-#define QR_CAPACITY 136
-
-#define PAYNOW_PHONE_NUMBER "+6597223615"
-#define PAYNOW_MESSAGE "RC4 SOS"
+// actual maximum capacity is 136
+#define QR_CAPACITY 128
 
 // this is about 40 seconds
 #define TIMER_DURATION 4096
 #define TIMER_BAR_HEIGHT 28
 #define TIMER_BAR_THICKNESS 4
 
-#define IDLE_TEXT "RC4 SOS"
+#define IDLE_TEXT F("SOS")
 #define IDLE_TEXT_VELOCITY 2
 
 #endif

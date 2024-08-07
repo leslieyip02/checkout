@@ -1,24 +1,24 @@
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include <Arduino.h>
+#include <avr/wdt.h>
 #include <SoftwareSerial.h>
+#include <SD.h>
 
 #include "display.h"
 #include "record.h"
 
-int* quantities;
-char* itemCodes[] = { ITEM_1_BARCODE, ITEM_2_BARCODE };
-double itemCosts[] = { ITEM_1_COST, ITEM_2_COST };
+double total = 0.0;
 
 void setupScanListener() {
     // the 3.5" TFT LCD takes 8 pins for display
     // and 4 pins for its SD card
     // so there are no other pins available on the UNO
     Serial.begin(9600);
+    SD.begin(SD_CS);
 
-    quantities = (int*) malloc(NUM_ITEMS * sizeof(int));
-    clearCart();
+    // clearCart();
 }
 
 void listenForScans() {
@@ -31,8 +31,8 @@ void listenForScans() {
             return;
         }
 
-        char* barcodeBuffer = (char*) malloc(14 * sizeof(char));
-        char* bufferPointer = barcodeBuffer;
+        char* buffer = (char*) malloc((BARCODE_LENGTH + 1) * sizeof(char));
+        char* bufferPointer = buffer;
         current = (char) Serial.read();
         while (current != MESSAGE_END) {
             if (isalnum(current)) {
@@ -43,46 +43,79 @@ void listenForScans() {
         }
         *bufferPointer = '\0';
 
-        if (strcmp(barcodeBuffer, PAYMENT_MESSAGE) == 0) {
-            double amount = tallyAmount();
-            displayPaymentScreen(amount);
-            clearCart();
-        } else if (strcmp(barcodeBuffer, CANCEL_MESSAGE) == 0) {
-            displayIdleScreen();
-            clearCart();
+        if (strcmp_P(buffer, PAYMENT_MESSAGE) == 0) {
+            displayPaymentScreen(total);
+        } else if (strcmp_P(buffer, CANCEL_MESSAGE) == 0) {
+            reboot();
         } else {
-            addToCart(barcodeBuffer);
+            addToCart(buffer);
         }
 
-        free(barcodeBuffer);
+        free(buffer);
     }
 }
 
-void addToCart(char* barcode) {
-    for (int i = 0; i < NUM_ITEMS; i++) {
-        if (strcmp(barcode, itemCodes[i]) == 0) {
-            quantities[i]++;
-            return;
-        }
-    }
-}
-
-void clearCart() {
-    // mom: we have memset at home
-    // memset at home:
-    for (int i = 0; i < NUM_ITEMS; i++) {
-        quantities[i] = 0;
-    }
-}
-
-double tallyAmount() {
-    double total = 0.0;
+void addToCart(char* scannedBarcode) {
+    // SD card is read for every scan to save memory
+    File pricesFile = SD.open(PRICES_CSV, FILE_READ);
+    char* lineBuffer = (char*) malloc(MAX_CSV_LINE_LENGTH * sizeof(char));
+    readCSVLine(pricesFile, lineBuffer);
 
     // mom: we have hashmaps at home
     // hashmaps at home:
-    for (int i = 0; i < NUM_ITEMS; i++) {
-        total += quantities[i] * itemCosts[i];
+    char* referenceBarcode = (char*) malloc((BARCODE_LENGTH + 1) * sizeof(char));
+    while (pricesFile.available() > 0) {
+        // ignore empty lines
+        if (!readCSVLine(pricesFile, lineBuffer)) {
+            continue;
+        }
+
+        // CSV file format
+        // barcode       | price
+        // ---------------------
+        // XXXXXXXXXXXXX | XXX
+
+        int offset = 0;
+        while (offset < BARCODE_LENGTH && *(lineBuffer + offset) != ',') {
+            *(referenceBarcode + offset) = *(lineBuffer + offset);
+            offset++;
+        }
+        *(referenceBarcode + offset) = '\0';
+
+        if (strcmp(scannedBarcode, referenceBarcode) == 0) {
+            double price = atof(lineBuffer + offset + 1);
+            total += price;
+            break;
+        }
     }
 
-    return total;
+    free(referenceBarcode);
+    free(lineBuffer);
+    pricesFile.close();
+}
+
+// void clearCart() {
+//     total = 0.0;
+// }
+
+bool readCSVLine(File& file, char* buffer) {
+    char* bufferPointer = buffer;
+    char current = file.read();
+    bool empty = true;
+    while (file.available() > 0 && current != '\n') {
+        *bufferPointer = current;
+        bufferPointer++;
+        current = file.read();
+        empty = false;
+    }
+    *bufferPointer = '\0';
+    return !empty;
+}
+
+// lazy way to reset
+// since memory errors might occur
+void reboot() {
+    wdt_disable();
+    wdt_enable(WDTO_15MS);
+    while (1) {}
 }

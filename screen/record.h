@@ -1,24 +1,26 @@
 #ifndef RECORD_H
 #define RECORD_H
 
+#include <avr/pgmspace.h>
+#include <SD.h>
+
 #define MESSAGE_START '<'
 #define MESSAGE_END '>'
-#define PAYMENT_MESSAGE "PAYMENT"
-#define CANCEL_MESSAGE "CANCEL"
+const char PAYMENT_MESSAGE[] PROGMEM = "PAY";
+const char CANCEL_MESSAGE[] PROGMEM = "XXX";
 
-#define NUM_ITEMS 2
+#define SD_CS 10
+#define PRICES_CSV F("p.csv")
+#define MAX_CSV_LINE_LENGTH 20
 
-// TODO: replace hard coding
-#define ITEM_1_BARCODE "100000010174"
-#define ITEM_2_BARCODE "8888112013000"
-#define ITEM_1_COST 1.00
-#define ITEM_2_COST 1.23
+// 13 characters is enough to fit EAN-13 retail barcodes
+#define BARCODE_LENGTH 13
 
 extern void setupScanListener();
 extern void listenForScans();
-
-void addToCart(char* barcode);
-extern void clearCart();
-extern double tallyAmount();
+void addToCart(char* scannedBarcode);
+// extern void clearCart();
+bool readCSVLine(File& file, char* buffer);
+void reboot();
 
 #endif

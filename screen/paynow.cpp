@@ -1,39 +1,29 @@
-#include <math.h>
-#include <stdint.h>
-#include <stdio.h>
+// #include <math.h>
+// #include <stdint.h>
+// #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <Arduino.h>
+#include <avr/pgmspace.h>
 
 #include "config.h"
 #include "paynow.h"
 
 char* generateCode(double amount) {
-    // each segment of the code is structure as follows
-    // <ID><length><value>
-    char* payload = (char*) malloc(QR_CAPACITY * sizeof(char));
-
-    char* proxyValue = (char*) malloc(16 * sizeof(char));
-    sprintf(proxyValue, "0211%s", PAYNOW_PHONE_NUMBER);
-
-    // sprintf does not work with floats on arduino
-    char* roundedAmount = (char*) malloc(16 * sizeof(char));
     int integral = (int) amount;
     int decimal = (int) (amount * 100) % 100;
-    sprintf(roundedAmount, "5406%03d.%02d", integral, decimal);
 
-    char* message = (char*) malloc(16 * sizeof(char));
-    sprintf(message, "01%02d%s", strlen(PAYNOW_MESSAGE), PAYNOW_MESSAGE);
-
-    strcpy(payload, BLOCK_1);       // predefined to save memory
-    strcat(payload, proxyValue);    // proxy value (+65XXXXXXXX)
-    strcat(payload, BLOCK_2);       // predefined to save memory
-    strcat(payload, roundedAmount); // amount (2dp)
-    strcat(payload, BLOCK_3);       // predefined to save memory
-    strcat(payload, message);       // message
-    strcat(payload, "6304");        // checksum indicator
+    char* payload = (char*) malloc(QR_CAPACITY * sizeof(char));
+    sprintf_P(
+        payload, PSTR("%S%03d.%02d%S"),
+        BLOCK_1, integral, decimal, BLOCK_2
+    );
 
     char* checksum = generateChecksum(payload);
     strcat(payload, checksum);
+    free(checksum);
+
     return payload;
 }
 

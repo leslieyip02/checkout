@@ -1,9 +1,6 @@
 #include "parser.h"
 
 void setup() {
-    // debugging
-    // Serial.begin(9600);
-
     setupScanner();
     pinMode(PAYMENT_BUTTON_PIN, INPUT);
     pinMode(CANCEL_BUTTON_PIN, INPUT);

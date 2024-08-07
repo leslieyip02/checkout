@@ -16,16 +16,12 @@
 
 #define MESSAGE_START '<'
 #define MESSAGE_END '>'
-#define PAYMENT_MESSAGE "PAYMENT"
-#define CANCEL_MESSAGE "CANCEL"
+#define PAYMENT_MESSAGE "PAY"
+#define CANCEL_MESSAGE "XXX"
 
 extern USB usb;
 extern void setupScanner();
 extern void sendMessage(char* message);
-
-// navigation
-extern void startPayment();
-extern void cancelPayment();
 
 class Parser : public HIDReportParser {
 public:

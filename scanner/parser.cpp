@@ -25,8 +25,6 @@ void sendMessage(char* message) {
     output.write(MESSAGE_START);
     output.print(message);
     output.write(MESSAGE_END);
-    // Serial.println(message);
-    // Serial.println("Sent");
 }
 
 Parser::Parser() {
