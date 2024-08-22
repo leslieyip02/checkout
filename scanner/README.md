@@ -2,6 +2,10 @@
 
 This module is responsible for scanning barcodes. It is also hooked up to buttons which can be used to toggle between screens.
 
+### Overview
+
+This module reads input from the barcode scanner, and communicates with the screen module through a `SoftwareSerial`.
+
 ### Hardware
 
 - Arduino UNO
